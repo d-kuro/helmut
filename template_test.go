@@ -1,15 +1,3 @@
-# Helmut
-
-Helmut is a testing library for Unit Testing of Helm charts.
-
-This library was inspired by the following project:
-
-* [github.com/Waterdrips/helmunit](https://github.com/Waterdrips/helmunit)
-* [How to unit-test your helm charts with Golang – Alistair Hey – Cloud Native Platform Engineer](https://blog.heyal.co.uk/unit-testing-helm-charts/)
-
-## Usage
-
-```go
 package helmut_test
 
 import (
@@ -25,7 +13,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func TestChart(t *testing.T) {
+func TestRenderTemplates(t *testing.T) {
+	t.Parallel()
+
 	const (
 		releaseName = "foo"
 		chartName   = "test-chart"
@@ -68,7 +58,7 @@ func TestChart(t *testing.T) {
 					Type: corev1.ServiceTypeClusterIP,
 					Ports: []corev1.ServicePort{
 						{
-							Port:       8080,
+							Port:       80,
 							TargetPort: intstr.FromString("http"),
 							Protocol:   corev1.ProtocolTCP,
 							Name:       "http",
@@ -94,41 +84,9 @@ func TestChart(t *testing.T) {
 		tt := tt
 
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Contains(t, manifests, tt.wantObject, tt.assertOptions...)
 		})
 	}
 }
-```
-
-Output:
-
-```text
-=== RUN   TestChart
-=== RUN   TestChart/contains_service_account
-=== RUN   TestChart/contains_service
-    template_test.go:163: service/foo-test-chart mismatch (-want +got):
-          &v1.Service{
-                TypeMeta:   {Kind: "Service", APIVersion: "v1"},
-                ObjectMeta: {Name: "foo-test-chart", Labels: {"app.kubernetes.io/instance": "foo", "app.kubernetes.io/name": "test-chart"}},
-                Spec: v1.ServiceSpec{
-                        Ports: []v1.ServicePort{
-                                {
-                                        Name:        "http",
-                                        Protocol:    "TCP",
-                                        AppProtocol: nil,
-        -                               Port:        8080,
-        +                               Port:        80,
-                                        TargetPort:  {Type: 1, StrVal: "http"},
-                                        NodePort:    0,
-                                },
-                        },
-                        Selector:  {"app.kubernetes.io/instance": "foo", "app.kubernetes.io/name": "test-chart"},
-                        ClusterIP: "",
-                        ... // 15 identical fields
-                },
-                Status: {},
-          }
---- FAIL: TestChart (0.06s)
-    --- PASS: TestChart/contains_service_account (0.00s)
-    --- FAIL: TestChart/contains_service (0.00s)
-```

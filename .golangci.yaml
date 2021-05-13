@@ -1,0 +1,11 @@
+run:
+  tests: true
+linters:
+  enable-all: true
+  disable:
+    - exhaustivestruct
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - goerr113
+    - gomoddirectives
