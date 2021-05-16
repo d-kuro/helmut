@@ -2,13 +2,18 @@
 package util
 
 import (
+	"bufio"
+	"bytes"
+	"errors"
 	"fmt"
+	"io"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // ObjectKinds returns group,version,kind of the object.
@@ -59,12 +64,19 @@ func SetGVKIfDoesNotExist(scheme *runtime.Scheme, object runtime.Object) (bool, 
 }
 
 // RawManifestToObject converts a raw manifest to a object.
+// Attempts to convert to unstructured.Unstructured if no type is registered in scheme.
 func RawManifestToObject(scheme *runtime.Scheme, data []byte) (runtime.Object, *schema.GroupVersionKind, error) {
 	codecFactory := serializer.NewCodecFactory(scheme)
 	deserializer := codecFactory.UniversalDeserializer()
 
 	object, gvk, err := deserializer.Decode(data, nil, nil)
-	if err != nil {
+	// If Scheme is not registered, try to convert to unstructured.
+	if runtime.IsNotRegisteredError(err) {
+		object, gvk, err = deserializer.Decode(data, nil, &unstructured.Unstructured{})
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to decode manifest to *unstructured.Unstructured: %w", err)
+		}
+	} else if err != nil {
 		return nil, nil, fmt.Errorf("failed to decode manifest: %w", err)
 	}
 
@@ -81,25 +93,54 @@ func MustRawManifestToObject(scheme *runtime.Scheme, data []byte) (runtime.Objec
 	return object, gvk
 }
 
-// RawManifestToUnstructuredObject converts a raw manifest to a unstructured object.
-func RawManifestToUnstructuredObject(data []byte) (runtime.Object, *schema.GroupVersionKind, error) {
-	codecFactory := serializer.NewCodecFactory(runtime.NewScheme())
-	deserializer := codecFactory.UniversalDeserializer()
+// SplitManifests takes a single large manifest and splits it into individual manifests.
+// Both JSON and YAML are supported, but the returned manifests will be converted to JSON.
+func SplitManifests(data []byte) ([][]byte, error) {
+	var result [][]byte
 
-	object, gvk, err := deserializer.Decode(data, nil, &unstructured.Unstructured{})
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to decode manifest to *unstructured.Unstructured: %w", err)
+	r := bytes.NewReader(data)
+	decoder := yaml.NewYAMLOrJSONDecoder(r, 4096)
+
+	for {
+		ext := runtime.RawExtension{}
+		if err := decoder.Decode(&ext); err != nil {
+			if errors.Is(err, io.EOF) {
+				return result, nil
+			}
+
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse manifests: %w", err)
+			}
+		}
+
+		ext.Raw = bytes.TrimSpace(ext.Raw)
+		if len(ext.Raw) == 0 || bytes.Equal(ext.Raw, []byte("null")) {
+			continue
+		}
+
+		result = append(result, ext.Raw)
 	}
-
-	return object, gvk, nil
 }
 
-// MustRawManifestToUnstructuredObject calls RawManifestToUnstructuredObject and panics if an error exists.
-func MustRawManifestToUnstructuredObject(data []byte) (runtime.Object, *schema.GroupVersionKind) {
-	object, gvk, err := RawManifestToUnstructuredObject(data)
-	if err != nil {
-		panic(err)
-	}
+// SplitYAMLDocument is a splitting YAML document into individual documents.
+func SplitYAMLDocument(data []byte) ([][]byte, error) {
+	bufReader := bufio.NewReader(bytes.NewReader(data))
+	yamlReader := yaml.NewYAMLReader(bufReader)
 
-	return object, gvk
+	var result [][]byte
+
+	for {
+		document, err := yamlReader.Read()
+		if errors.Is(err, io.EOF) {
+			return result, nil
+		}
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to read YAML document: %w", err)
+		}
+
+		document = bytes.TrimSpace(document)
+
+		result = append(result, document)
+	}
 }

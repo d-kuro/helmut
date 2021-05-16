@@ -14,7 +14,6 @@ type TestingT interface {
 	Helper()
 	Error(args ...interface{})
 	Errorf(format string, args ...interface{})
-	Name() string
 }
 
 // Contains asserts that the specified manifests contains the specified object.
@@ -51,6 +50,7 @@ func Contains(t TestingT, manifests *helmut.Manifests, contains runtime.Object, 
 	}
 
 	if opts.ignoreOption != nil {
+		contains = omitMetadata(contains.DeepCopyObject(), opts.ignoreOption)
 		actual = omitMetadata(actual.DeepCopyObject(), opts.ignoreOption)
 	}
 

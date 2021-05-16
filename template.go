@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/d-kuro/helmut/util"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/cli/values"
 	"helm.sh/helm/v3/pkg/getter"
-	"helm.sh/helm/v3/pkg/releaseutil"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -60,7 +60,14 @@ func (r *Renderer) RenderTemplates(name, chart string, options ...Option) (*Mani
 	}
 
 	client := newClient(name, opts)
-	valueOpts := &values.Options{}
+
+	valueOpts := &values.Options{
+		ValueFiles:   opts.valueFiles,
+		StringValues: opts.stringValues,
+		Values:       opts.values,
+		FileValues:   opts.fileValues,
+	}
+
 	settings := cli.New()
 
 	chartPath, err := client.ChartPathOptions.LocateChart(chart, settings)
@@ -85,24 +92,28 @@ func (r *Renderer) RenderTemplates(name, chart string, options ...Option) (*Mani
 		return nil, fmt.Errorf("failed to render templates: %w", err)
 	}
 
-	return r.SplitManifests(release.Manifest)
+	return r.SplitManifests([]byte(release.Manifest))
 }
 
-// SplitManifests parses one huge YAML and splits it into individual manifests.
-func (r *Renderer) SplitManifests(data string) (*Manifests, error) {
+// SplitManifests takes a single large manifest and splits it into individual manifests.
+func (r *Renderer) SplitManifests(data []byte) (*Manifests, error) {
 	r.once.Do(r.init)
 
 	manifests := NewManifests(WithScheme(r.scheme))
-
 	codecFactory := serializer.NewCodecFactory(r.scheme)
 	deserializer := codecFactory.UniversalDeserializer()
 
-	for _, manifest := range releaseutil.SplitManifests(data) {
-		object, gvk, err := deserializer.Decode([]byte(manifest), nil, nil)
+	split, err := util.SplitManifests(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to split manifests: %w", err)
+	}
+
+	for _, manifest := range split {
+		object, gvk, err := deserializer.Decode(manifest, nil, nil)
 
 		// If Scheme is not registered, try to convert to unstructured.
 		if runtime.IsNotRegisteredError(err) {
-			object, gvk, err = deserializer.Decode([]byte(manifest), nil, &unstructured.Unstructured{})
+			object, gvk, err = deserializer.Decode(manifest, nil, &unstructured.Unstructured{})
 			if err != nil {
 				return nil, fmt.Errorf("failed to decode manifest to *unstructured.Unstructured: %w", err)
 			}
@@ -116,7 +127,7 @@ func (r *Renderer) SplitManifests(data string) (*Manifests, error) {
 
 		accessor, err := meta.Accessor(object)
 		if err != nil {
-			return nil, fmt.Errorf("object is not a `metav1.Object`: %w", err)
+			return nil, fmt.Errorf("want is not a `metav1.Object`: %w", err)
 		}
 
 		key := NewObjectKey(accessor.GetNamespace(), accessor.GetName(), *gvk)
