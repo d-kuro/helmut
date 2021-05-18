@@ -24,14 +24,14 @@ func TestRenderTemplates(t *testing.T) {
 	tests := []struct {
 		name          string
 		assertOptions []assert.Option
-		wantObject    runtime.Object
+		want          runtime.Object
 	}{
 		{
 			name: "contains service account",
 			assertOptions: []assert.Option{
 				assert.WithIgnoreHelmManagedLabels(),
 			},
-			wantObject: &corev1.ServiceAccount{
+			want: &corev1.ServiceAccount{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: fmt.Sprintf("%s-%s", releaseName, chartName),
 				},
@@ -46,7 +46,7 @@ func TestRenderTemplates(t *testing.T) {
 					"helm.sh/chart",
 				}),
 			},
-			wantObject: &corev1.Service{
+			want: &corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: fmt.Sprintf("%s-%s", releaseName, chartName),
 					Labels: map[string]string{
@@ -86,7 +86,7 @@ func TestRenderTemplates(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			assert.Contains(t, manifests, tt.wantObject, tt.assertOptions...)
+			assert.Contains(t, manifests, tt.want, tt.assertOptions...)
 		})
 	}
 }
