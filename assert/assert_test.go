@@ -121,8 +121,8 @@ func TestContains(t *testing.T) {
 			name: "service with ignore labels and annotations",
 			want: true,
 			assertOptions: []assert.Option{
-				assert.WithIgnoreLabels([]string{"foo"}),
-				assert.WithIgnoreAnnotations([]string{"foo"}),
+				assert.WithIgnoreLabelKeys("foo"),
+				assert.WithIgnoreAnnotationKeys("foo"),
 			},
 			object: newNginxService(),
 		},

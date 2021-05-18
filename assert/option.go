@@ -24,7 +24,7 @@ type Option func(*option)
 // WithIgnoreHelmManagedLabels is an option to ignore diffs
 // in labels that Helm is supposed to use in general.
 // Labels will be ignored regardless of the value of value if the key matches.
-// If you want to ignore individual labels, please use the WithIgnoreLabels option.
+// If you want to ignore individual labels, please use the WithIgnoreLabelKeys option.
 //
 // The labels that are ignored are:
 //   app.kubernetes.io/name
@@ -46,9 +46,9 @@ func WithIgnoreHelmManagedLabels() Option {
 	}
 }
 
-// WithIgnoreLabels is an option to ignore diffs for the specified labels.
+// WithIgnoreLabelKeys is an option to ignore diffs for the specified labels.
 // Labels will be ignored regardless of the value of value if the key matches.
-func WithIgnoreLabels(labels []string) Option {
+func WithIgnoreLabelKeys(labels ...string) Option {
 	return func(o *option) {
 		if o.ignoreOption == nil {
 			o.ignoreOption = &ignoreOption{}
@@ -58,9 +58,9 @@ func WithIgnoreLabels(labels []string) Option {
 	}
 }
 
-// WithIgnoreAnnotations is an option to ignore diffs for the specified annotations.
+// WithIgnoreAnnotationKeys is an option to ignore diffs for the specified annotations.
 // Annotations will be ignored regardless of the value of value if the key matches.
-func WithIgnoreAnnotations(annotations []string) Option {
+func WithIgnoreAnnotationKeys(annotations ...string) Option {
 	return func(o *option) {
 		if o.ignoreOption == nil {
 			o.ignoreOption = &ignoreOption{}
