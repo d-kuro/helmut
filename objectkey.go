@@ -9,8 +9,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// ObjectKey is that uniquely identifies an want.
-// Used as the key for the map that holds the want.
+// ObjectKey is that uniquely identifies an object.
+// Used as the key for the map that holds the object.
 type ObjectKey struct {
 	Group     string
 	Version   string
@@ -30,7 +30,7 @@ func NewObjectKey(namespace, name string, gvk schema.GroupVersionKind) ObjectKey
 	}
 }
 
-// NewObjectKeyFromObject creates and returns an ObjectKey from an want.
+// NewObjectKeyFromObject creates and returns an ObjectKey from an object.
 // If SchemeOption is omitted, the default scheme will be used.
 func NewObjectKeyFromObject(obj runtime.Object, options ...SchemeOption) (ObjectKey, error) {
 	opts := &schemeOption{}
@@ -55,7 +55,7 @@ func NewObjectKeyFromObject(obj runtime.Object, options ...SchemeOption) (Object
 
 		gvks, _, err := scheme.ObjectKinds(obj)
 		if err != nil {
-			return ObjectKey{}, fmt.Errorf("failed to get group,version,kind from want: %w", err)
+			return ObjectKey{}, fmt.Errorf("failed to get group,version,kind from object: %w", err)
 		}
 
 		// Only Group and Kind are used in the map, so version information is not needed.
@@ -64,7 +64,7 @@ func NewObjectKeyFromObject(obj runtime.Object, options ...SchemeOption) (Object
 
 	accessor, err := meta.Accessor(obj)
 	if err != nil {
-		return ObjectKey{}, fmt.Errorf("want is not a `metav1.Object`: %w", err)
+		return ObjectKey{}, fmt.Errorf("object is not a `metav1.Object`: %w", err)
 	}
 
 	key := ObjectKey{
@@ -87,12 +87,12 @@ func (k ObjectKey) GetGroupVersionKind() schema.GroupVersionKind {
 	}
 }
 
-// GetName returns the name of the want.
+// GetName returns the name of the object.
 func (k ObjectKey) GetName() string {
 	return k.Name
 }
 
-// GetNamespace returns the namespace of the want.
+// GetNamespace returns the namespace of the object.
 func (k ObjectKey) GetNamespace() string {
 	return k.Namespace
 }

@@ -127,7 +127,7 @@ func (r *Renderer) SplitManifests(data []byte) (*Manifests, error) {
 
 		accessor, err := meta.Accessor(object)
 		if err != nil {
-			return nil, fmt.Errorf("want is not a `metav1.Object`: %w", err)
+			return nil, fmt.Errorf("object is not a `metav1.Object`: %w", err)
 		}
 
 		key := NewObjectKey(accessor.GetNamespace(), accessor.GetName(), *gvk)
