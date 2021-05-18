@@ -60,11 +60,11 @@ func TestChart(t *testing.T) {
 		{
 			name: "contains service",
 			assertOptions: []assert.Option{
-				assert.WithIgnoreLabels([]string{
+				assert.WithIgnoreLabelKeys(
 					"app.kubernetes.io/managed-by",
 					"app.kubernetes.io/version",
 					"helm.sh/chart",
-				}),
+				),
 			},
 			want: &corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
