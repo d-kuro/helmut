@@ -47,7 +47,7 @@ func (m *Manifests) init() {
 	}
 }
 
-// Load returns the want stored in the manifests for a key, or nil if no value is present.
+// Load returns the object stored in the manifests for a key, or nil if no value is present.
 // The ok result indicates whether value was found in the manifests.
 func (m *Manifests) Load(key ObjectKey) (runtime.Object, bool) {
 	m.once.Do(m.init)
@@ -60,7 +60,7 @@ func (m *Manifests) Load(key ObjectKey) (runtime.Object, bool) {
 	return obj, ok
 }
 
-// Delete deletes the want for a key.
+// Delete deletes the object for a key.
 func (m *Manifests) Delete(key ObjectKey) {
 	m.once.Do(m.init)
 
@@ -69,7 +69,7 @@ func (m *Manifests) Delete(key ObjectKey) {
 	m.mu.Unlock()
 }
 
-// Store sets the want for a key.
+// Store sets the object for a key.
 func (m *Manifests) Store(key ObjectKey, value runtime.Object) {
 	m.once.Do(m.init)
 
