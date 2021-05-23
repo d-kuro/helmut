@@ -127,6 +127,33 @@ func TestContains(t *testing.T) {
 			object: newNginxService(),
 		},
 		{
+			name: "deployment with transform option",
+			want: true,
+			assertOptions: []assert.Option{
+				// omit replicas
+				assert.WithTransformer(func(object runtime.Object) runtime.Object {
+					deploy, ok := object.(*appsv1.Deployment)
+					if !ok {
+						return object
+					}
+
+					deploy.Spec.Replicas = nil
+
+					return deploy
+				}),
+			},
+			object: newNginxDeployment(
+				withDeploymentReplicas(toInt32Pointer(5)), // original replicas are "3"
+				withDeploymentLabels(map[string]string{
+					"helm.sh/chart":                "test-chart-0.1.0",
+					"app.kubernetes.io/name":       "test-chart",
+					"app.kubernetes.io/instance":   "RELEASE-NAME",
+					"app.kubernetes.io/version":    "1.16.0",
+					"app.kubernetes.io/managed-by": "Helm",
+				}),
+			),
+		},
+		{
 			name:   "diffs exists service",
 			want:   false,
 			object: newNginxService(),
@@ -215,6 +242,12 @@ type deploymentOption func(*appsv1.Deployment)
 func withDeploymentLabels(labels map[string]string) deploymentOption {
 	return func(deploy *appsv1.Deployment) {
 		deploy.Labels = labels
+	}
+}
+
+func withDeploymentReplicas(replicas *int32) deploymentOption {
+	return func(deploy *appsv1.Deployment) {
+		deploy.Spec.Replicas = replicas
 	}
 }
 

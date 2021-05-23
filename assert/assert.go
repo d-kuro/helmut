@@ -54,6 +54,13 @@ func Contains(t TestingT, manifests *helmut.Manifests, contains runtime.Object, 
 		actual = omitMetadata(actual.DeepCopyObject(), opts.ignoreOption)
 	}
 
+	if opts.transformOption != nil {
+		for _, fn := range opts.transformOption.transformers {
+			contains = fn(contains.DeepCopyObject())
+			actual = fn(actual.DeepCopyObject())
+		}
+	}
+
 	if diff := cmp.Diff(contains, actual, opts.cmpOptions...); diff != "" {
 		t.Errorf("%s mismatch (-want +got):\n%s", key, diff)
 
