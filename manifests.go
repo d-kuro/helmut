@@ -92,3 +92,16 @@ func (m *Manifests) Length() int {
 
 	return len(m.objects)
 }
+
+func (m *Manifests) GetKeys() []ObjectKey {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	keys := make([]ObjectKey, 0, m.Length())
+
+	for key := range m.objects {
+		keys = append(keys, key)
+	}
+
+	return keys
+}

@@ -168,3 +168,43 @@ func TestLength(t *testing.T) {
 		t.Fatalf("length: got %d, want %d", 0, manifests.Length())
 	}
 }
+
+func TestGetKeys(t *testing.T) {
+	t.Parallel()
+
+	objects := []runtime.Object{
+		&appsv1.Deployment{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "test",
+				Namespace: "default",
+			},
+		},
+		&corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "test",
+				Namespace: "default",
+			},
+		},
+	}
+
+	manifests := helmut.NewManifests()
+
+	want := make([]helmut.ObjectKey, 0, len(objects))
+
+	for _, object := range objects {
+		key, err := helmut.NewObjectKeyFromObject(object)
+		if err != nil {
+			t.Fatalf("failed to create objectkey: %s", err)
+		}
+
+		want = append(want, key)
+
+		manifests.Store(key, object)
+	}
+
+	got := manifests.GetKeys()
+
+	if diff := cmp.Diff(got, want); diff != "" {
+		t.Errorf("keys mismatch (-want +got):\n%s", diff)
+	}
+}
