@@ -2,11 +2,14 @@ package assert
 
 import (
 	"github.com/google/go-cmp/cmp"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // option stores the options for assert.
 type option struct {
 	cmpOptions []cmp.Option
+
+	transformOption *transformOption
 
 	ignoreOption *ignoreOption
 }
@@ -16,6 +19,10 @@ type ignoreOption struct {
 	allHelmManagedLabels bool
 	labels               []string
 	annotations          []string
+}
+
+type transformOption struct {
+	transformers []func(runtime.Object) runtime.Object
 }
 
 // Option is the option used when asserting.
@@ -74,6 +81,36 @@ func WithIgnoreAnnotationKeys(annotations ...string) Option {
 func WithCmpOptions(opts ...cmp.Option) Option {
 	return func(o *option) {
 		o.cmpOptions = append(o.cmpOptions, opts...)
+	}
+}
+
+// WithTransformer is an option to provide a function to freely transform the object to be compared.
+// For example, you can use it to omit or edit a particular field.
+// The function passed here will be executed just before the comparison
+// and will be applied to both of the two Objects being compared.
+//
+// Example of omitting the securityContext of a Pod:
+//
+//  omitSecurityContext := func(obj runtime.Object) runtime.Object {
+//  	pod, ok := obj.(*corev1.Pod)
+//  	if !ok {
+//  		return obj
+//  	}
+//
+//  	pod.Spec.SecurityContext = nil
+//
+//  	return pod
+//  }
+//
+//  assert.Contains(t, manifests, obj, assert.WithTransformer(omitSecurityContext))
+//
+func WithTransformer(fn ...func(runtime.Object) runtime.Object) Option {
+	return func(o *option) {
+		if o.transformOption == nil {
+			o.transformOption = &transformOption{}
+		}
+
+		o.transformOption.transformers = append(o.transformOption.transformers, fn...)
 	}
 }
 
