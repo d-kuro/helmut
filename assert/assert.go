@@ -102,7 +102,8 @@ func searchObject(
 		return object, key, nil
 	}
 
-	searched := []string{key.String()}
+	set := make(map[string]struct{})
+	set[key.String()] = struct{}{}
 
 	for _, fn := range opts.additionalKeys {
 		addnl := fn(key)
@@ -111,7 +112,13 @@ func searchObject(
 			return object, addnl, nil
 		}
 
-		searched = append(searched, addnl.String())
+		set[addnl.String()] = struct{}{}
+	}
+
+	searched := make([]string, 0, len(set))
+
+	for key := range set {
+		searched = append(searched, key)
 	}
 
 	return nil, helmut.ObjectKey{}, fmt.Errorf("not found %s", searched)
