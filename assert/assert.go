@@ -47,7 +47,7 @@ func Contains(t TestingT, manifests *helmut.Manifests, contains runtime.Object, 
 
 	actual, key, err := searchObject(manifests, key, opts)
 	if err != nil {
-		t.Errorf("object was not found")
+		t.Errorf("object was not found: %s", err)
 
 		return false
 	}
@@ -114,7 +114,7 @@ func searchObject(
 		searched = append(searched, addnl.String())
 	}
 
-	return nil, helmut.ObjectKey{}, fmt.Errorf("object %s was not found", searched)
+	return nil, helmut.ObjectKey{}, fmt.Errorf("not found %s", searched)
 }
 
 // overrideMeta overrides object metadata based on key.

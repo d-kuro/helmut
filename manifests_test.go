@@ -1,6 +1,7 @@
 package helmut_test
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/d-kuro/helmut"
@@ -203,6 +204,27 @@ func TestGetKeys(t *testing.T) {
 	}
 
 	got := manifests.GetKeys()
+
+	sortFn := func(keys []helmut.ObjectKey) {
+		sort.Slice(keys, func(i, j int) bool {
+			if got[i].Kind != got[j].Kind {
+				return got[i].Kind < got[j].Kind
+			}
+
+			if got[i].Namespace != got[j].Namespace {
+				return got[i].Namespace < got[j].Namespace
+			}
+
+			if got[i].Name != got[j].Name {
+				return got[i].Name < got[j].Name
+			}
+
+			return false
+		})
+	}
+
+	sortFn(got)
+	sortFn(want)
 
 	if diff := cmp.Diff(got, want); diff != "" {
 		t.Errorf("keys mismatch (-want +got):\n%s", diff)
