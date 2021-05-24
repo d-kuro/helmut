@@ -20,7 +20,7 @@ This library was inspired by the following project:
 
 ```text
 require (
-	github.com/d-kuro/helmut v0.0.6
+	github.com/d-kuro/helmut v0.0.7
 )
 
 // ref: https://github.com/helm/helm/blob/v3.5.4/go.mod#L51-L54
