@@ -1,16 +1,24 @@
 package assert
 
 import (
+	"github.com/d-kuro/helmut"
 	"github.com/google/go-cmp/cmp"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // option stores the options for assert.
 type option struct {
+	// cmpOptions is the option used when calling cmp.Diff.
 	cmpOptions []cmp.Option
 
-	transformOption *transformOption
+	// transformers is the function used to transform an object.
+	transformers []func(runtime.Object) runtime.Object
 
+	// additionalKeys is a function that generates additional search keys to be executed if the object is not found.
+	// The previous search key is passed as an args, you can overwrite it.
+	additionalKeys []func(helmut.ObjectKey) helmut.ObjectKey
+
+	// ignoreOption stores the option to ignore object diffs.
 	ignoreOption *ignoreOption
 }
 
@@ -19,10 +27,6 @@ type ignoreOption struct {
 	allHelmManagedLabels bool
 	labels               []string
 	annotations          []string
-}
-
-type transformOption struct {
-	transformers []func(runtime.Object) runtime.Object
 }
 
 // Option is the option used when asserting.
@@ -106,11 +110,39 @@ func WithCmpOptions(opts ...cmp.Option) Option {
 //
 func WithTransformer(fn ...func(runtime.Object) runtime.Object) Option {
 	return func(o *option) {
-		if o.transformOption == nil {
-			o.transformOption = &transformOption{}
-		}
+		o.transformers = append(o.transformers, fn...)
+	}
+}
 
-		o.transformOption.transformers = append(o.transformOption.transformers, fn...)
+// WithAdditionalKeys you can specify a function to generate additional search keys
+// that will be used if the object is not found.
+// The original search key is passed as an argument to the function, you can be overwritten.
+//
+// When an object is found by the generated key,
+// the group, version, kind, name, namespace of the object are rewritten based on the key.
+// This will prevent the above fields from diffs.
+//
+// You can pass multiple functions as arguments,
+// but when the generated key finds the object,
+// the execution of the remaining functions
+// will be interrupted and the object comparison process will be performed.
+//
+// For example, it can be used to ignore the release name given by Helm.
+//
+// Example of removing prefix from name:
+//
+//  removePrefix := func(key helmut.ObjectKey) helmut.ObjectKey {
+//  	if strings.HasPrefix(key.GetName(), "prefix") {
+//  		key.Name = strings.TrimPrefix(key.GetName(), "prefix-")
+//  	}
+//  	return key
+//  }
+//
+//  assert.Contains(t, manifests, obj, assert.WithAdditionalKeys(removePrefix))
+//
+func WithAdditionalKeys(fn ...func(helmut.ObjectKey) helmut.ObjectKey) Option {
+	return func(o *option) {
+		o.additionalKeys = append(o.additionalKeys, fn...)
 	}
 }
 

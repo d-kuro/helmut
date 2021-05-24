@@ -154,6 +154,26 @@ func TestContains(t *testing.T) {
 			),
 		},
 		{
+			name: "additional name",
+			want: true,
+			assertOptions: []assert.Option{
+				assert.WithAdditionalKeys(func(key helmut.ObjectKey) helmut.ObjectKey {
+					key.Name = "nginx"
+
+					return key
+				}),
+			},
+			object: newNginxService(
+				withServiceName("additional-name"),
+				withServiceLabels(map[string]string{
+					"foo": "bar",
+				}),
+				withServiceAnnotations(map[string]string{
+					"foo": "bar",
+				}),
+			),
+		},
+		{
 			name:   "diffs exists service",
 			want:   false,
 			object: newNginxService(),
@@ -294,6 +314,12 @@ func newNginxDeployment(options ...deploymentOption) *appsv1.Deployment {
 }
 
 type serviceOption func(*corev1.Service)
+
+func withServiceName(name string) serviceOption {
+	return func(svc *corev1.Service) {
+		svc.SetName(name)
+	}
+}
 
 func withServiceLabels(labels map[string]string) serviceOption {
 	return func(svc *corev1.Service) {
