@@ -3,7 +3,7 @@ module github.com/d-kuro/helmut
 go 1.16
 
 require (
-	github.com/google/go-cmp v0.5.5
+	github.com/google/go-cmp v0.5.6
 	helm.sh/helm/v3 v3.5.4
 	k8s.io/api v0.20.4
 	k8s.io/apiextensions-apiserver v0.20.4
