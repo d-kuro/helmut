@@ -8,4 +8,5 @@ linters:
     - gochecknoglobals
     - gochecknoinits
     - goerr113
+    - gomnd
     - gomoddirectives
