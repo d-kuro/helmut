@@ -26,7 +26,7 @@ func WithNamespace(namespace string) Option {
 
 // WithAPIVersions specifies the apiVersions.
 // This is equivalent to the "--api-versions" option of the "helm template" command.
-func WithAPIVersions(apiVersions []string) Option {
+func WithAPIVersions(apiVersions ...string) Option {
 	return func(o *option) {
 		o.apiVersions = apiVersions
 	}
@@ -42,7 +42,7 @@ func WithIncludeCRDs() Option {
 
 // WithValues specifies values in a YAML file or a URL (can specify multiple).
 // This is equivalent to the "--values" or "-f" option of the "helm template" command.
-func WithValues(files []string) Option {
+func WithValues(files ...string) Option {
 	return func(o *option) {
 		o.valueFiles = files
 	}
@@ -51,7 +51,7 @@ func WithValues(files []string) Option {
 // WithSetString set STRING values just like the command line.
 // (can specify multiple or separate values with commas: key1=val1,key2=val2)
 // This is equivalent to the "--set-string" option of the "helm template" command.
-func WithSetString(values []string) Option {
+func WithSetString(values ...string) Option {
 	return func(o *option) {
 		o.stringValues = values
 	}
@@ -60,7 +60,7 @@ func WithSetString(values []string) Option {
 // WithSet set values just like the command line.
 // (can specify multiple or separate values with commas: key1=val1,key2=val2)
 // This is equivalent to the "--set" option of the "helm template" command.
-func WithSet(values []string) Option {
+func WithSet(values ...string) Option {
 	return func(o *option) {
 		o.values = values
 	}
@@ -69,7 +69,7 @@ func WithSet(values []string) Option {
 // WithSetFile set values just like the command line.
 // (can specify multiple or separate values with commas: key1=val1,key2=val2)
 // This is equivalent to the "set-file" option of the "helm template" command.
-func WithSetFile(files []string) Option {
+func WithSetFile(files ...string) Option {
 	return func(o *option) {
 		o.fileValues = files
 	}
