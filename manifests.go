@@ -93,6 +93,7 @@ func (m *Manifests) Length() int {
 	return len(m.objects)
 }
 
+// GetKeys returns a list of keys for an object.
 func (m *Manifests) GetKeys() []ObjectKey {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
