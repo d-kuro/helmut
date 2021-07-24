@@ -20,10 +20,10 @@ This library was inspired by the following project:
 
 ```text
 require (
-	github.com/d-kuro/helmut v0.2.0
+	github.com/d-kuro/helmut v0.3.0
 )
 
-// ref: https://github.com/helm/helm/blob/v3.6.1/go.mod#L50
+// ref: https://github.com/helm/helm/blob/v3.6.3/go.mod#L50
 replace github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
 ```
 
@@ -141,6 +141,30 @@ Output:
 ```
 
 Helmut uses [github.com/google/go-cmp](https://github.com/google/go-cmp) to display object diffs.
+
+### Render Options
+
+You can specify options when rendering the Helm chart with `RenderTemplates`.
+
+e.g.
+
+```go
+r.RenderTemplates(releaseName, chartPath, helmut.WithSet("replicaCount=2"))
+```
+
+https://pkg.go.dev/github.com/d-kuro/helmut#Option
+
+### Assert Options
+
+You can specify options when asserting.
+
+e.g.
+
+```go
+assert.Contains(t, manifests, object, assert.WithIgnoreHelmManagedLabels())
+```
+
+https://pkg.go.dev/github.com/d-kuro/helmut/assert#Option
 
 ## Utils
 
