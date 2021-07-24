@@ -11,6 +11,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/pointer"
 )
 
 const rawManifests = `apiVersion: apps/v1
@@ -67,12 +68,6 @@ func (f *fakeT) Error(args ...interface{}) {
 
 func (f *fakeT) Errorf(format string, args ...interface{}) {
 	f.message = fmt.Sprintf(format, args...)
-}
-
-func toInt32Pointer(i int) *int32 {
-	i32 := int32(i)
-
-	return &i32
 }
 
 func TestContains(t *testing.T) {
@@ -143,7 +138,7 @@ func TestContains(t *testing.T) {
 				}),
 			},
 			object: newNginxDeployment(
-				withDeploymentReplicas(toInt32Pointer(5)), // original replicas are "3"
+				withDeploymentReplicas(pointer.Int32Ptr(5)), // original replicas are "3"
 				withDeploymentLabels(map[string]string{
 					"helm.sh/chart":                "test-chart-0.1.0",
 					"app.kubernetes.io/name":       "test-chart",
@@ -277,7 +272,7 @@ func newNginxDeployment(options ...deploymentOption) *appsv1.Deployment {
 			Name: "nginx",
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: toInt32Pointer(3),
+			Replicas: pointer.Int32Ptr(3),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app": "nginx",
