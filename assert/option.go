@@ -3,6 +3,7 @@ package assert
 import (
 	"github.com/d-kuro/helmut"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -85,6 +86,13 @@ func WithIgnoreAnnotationKeys(annotations ...string) Option {
 func WithCmpOptions(opts ...cmp.Option) Option {
 	return func(o *option) {
 		o.cmpOptions = append(o.cmpOptions, opts...)
+	}
+}
+
+// WithSortObjectsByNameField sorts and compares the "Name" field of an object slice, if it exists.
+func WithSortObjectsByNameField() Option {
+	return func(o *option) {
+		o.cmpOptions = append(o.cmpOptions, cmpopts.SortSlices(SortObjectsByNameField))
 	}
 }
 

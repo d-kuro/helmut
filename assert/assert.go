@@ -45,7 +45,7 @@ func Contains(t TestingT, manifests *helmut.Manifests, contains runtime.Object, 
 		return false
 	}
 
-	actual, key, err := searchObject(manifests, key, opts)
+	actual, key, err := findObject(manifests, key, opts)
 	if err != nil {
 		t.Errorf("object was not found: %s", err)
 
@@ -91,9 +91,9 @@ func ContainsWithRawManifest(t TestingT, manifests *helmut.Manifests, contains [
 	return Contains(t, manifests, object, options...)
 }
 
-// searchObject searches for objects in manifests.
+// findObject searches for objects in manifests.
 // If it finds an object, it returns the found object and the key.
-func searchObject(
+func findObject(
 	manifests *helmut.Manifests,
 	key helmut.ObjectKey,
 	opts *option,
