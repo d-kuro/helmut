@@ -12,3 +12,5 @@ updates:
       interval: daily
     reviewers:
       - d-kuro
+    ignore:
+      - dependency-name: "k8s.io/*"
