@@ -22,9 +22,6 @@ This library was inspired by the following project:
 require (
 	github.com/d-kuro/helmut v0.3.0
 )
-
-// ref: https://github.com/helm/helm/blob/v3.6.3/go.mod#L50
-replace github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
 ```
 
 ## Usage
