@@ -12,6 +12,3 @@ require (
 	k8s.io/utils v0.0.0-20210707171843-4b05e18ac7d9
 	sigs.k8s.io/yaml v1.2.0
 )
-
-// ref: https://github.com/helm/helm/blob/v3.6.3/go.mod#L50
-replace github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
