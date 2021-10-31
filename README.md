@@ -20,7 +20,7 @@ This library was inspired by the following project:
 
 ```text
 require (
-	github.com/d-kuro/helmut v0.3.0
+	github.com/d-kuro/helmut v0.3.1
 )
 ```
 
